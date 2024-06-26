@@ -34,6 +34,19 @@ def handle_scroll(scrollValues):
     mouse.scroll(0, scrollValues["y"] / 50)
     print("Scroll", scrollValues)
 
+@socketio.on("statechange")
+def handle_statechange(changedState):
+    if changedState["state"] == "left":
+        if changedState["value"] == True:
+            mouse.press(Button.left)
+        if changedState["value"] == False:
+            mouse.release(Button.left)
+    if changedState["state"] == "right":
+        if changedState["value"] == True:
+            mouse.press(Button.right)
+        if changedState["value"] == False:
+            mouse.release(Button.right)
+
 @socketio.on("log")
 def handle_log(text):
     print(text)

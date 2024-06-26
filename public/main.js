@@ -67,17 +67,22 @@ function checkPos(x, y, rect) {
     )
 }
 
+function filterTouches(touches) {
+    let validTouches = [];
+    for(let i = 0; i < touches.length; i++) {
+        const relativeTouch = getRelativePos(touches[i].clientX, touches[i].clientY, padRect);
+
+        if (checkPos(relativeTouch.x, relativeTouch.y, padRect)) {
+            validTouches.push(touches[i]);
+        }
+    }
+    return validTouches;
+}
+
 function handleTouchstart(touches) {
     actions.clicking = true;
-    
+    touches = filterTouches(touches);
     if(touches.length > 1) {
-        for(let i = 0; i < touches.length; i++) {
-            const relativeTouch = getRelativePos(touches[i].clientX, touches[i].clientY, padRect);
-    
-            if(!checkPos(relativeTouch.x, relativeTouch.y, padRect)) {
-                return;
-            }
-        }
         const centeredTouches = getCenter(touches);
         const relativeTouch = getRelativePos(centeredTouches.x, centeredTouches.y, padRect);
         updateFirstPos(relativeTouch);
@@ -104,11 +109,7 @@ function handleTouchmove(touches) {
         relativeTouch = getRelativePos(touches[0].clientX, touches[0].clientY, padRect);
     }
 
-    if(!checkPos(relativeTouch.x, relativeTouch.y, padRect)) {
-        return handleTouchstart(touches);
-    }
-
-    if(Math.abs(relativeTouch.x - firstPos.x) < (Math.min(padSize.x, padSize.y) * 0.1) && Math.abs(relativeTouch.y - firstPos.y) < (Math.min(padSize.x, padSize.y) * 0.1)) {
+    if(Math.abs(relativeTouch.x - firstPos.x) > (Math.min(padSize.x, padSize.y) * 0.1) || Math.abs(relativeTouch.y - firstPos.y) > (Math.min(padSize.x, padSize.y) * 0.5)) {
         actions.clicking = false;
     }
 
@@ -182,12 +183,10 @@ pad.addEventListener("touchstart", (ev) => {
 
 pad.addEventListener("touchmove", (ev) => {
     ev.preventDefault();
-    const touches = ev.touches;
-    
+    const touches = filterTouches(ev.touches);
     if(pointers != touches.length) {
         return handleTouchstart(touches);
     }
-    
     handleTouchmove(touches);
 })
 
@@ -195,6 +194,22 @@ pad.addEventListener("touchend", (ev) => {
     handleTouchend(ev.touches);
 })
 
-pad.addEventListener("touchend", (ev) => {
+pad.addEventListener("touchcancel", (ev) => {
     handleTouchend(ev.touches);
+})
+
+left.addEventListener("touchstart", (ev) => {
+    changeButtonState("left", true);
+})
+
+left.addEventListener("touchend", (ev) => {
+    changeButtonState("left", false);
+})
+
+right.addEventListener("touchstart", (ev) => {
+    changeButtonState("right", true);
+})
+
+right.addEventListener("touchend", (ev) => {
+    changeButtonState("right", false);
 })
