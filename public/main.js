@@ -32,6 +32,8 @@ let pointers = 0;
 let padTimer;
 let animationFrame;
 
+padCtx.globalAlpha = 0.2;
+
 function getCenter(touches) {
     let touchesSum = { x: 0, y: 0 };
     for(let i = 0; i < touches.length; i++) {
@@ -75,7 +77,7 @@ function filterTouches(touches) {
     for(let i = 0; i < touches.length; i++) {
         const relativeTouch = getRelativePos(touches[i].clientX, touches[i].clientY, padRect);
 
-        if (checkPos(relativeTouch.x, relativeTouch.y, padRect)) {
+        if(checkPos(relativeTouch.x, relativeTouch.y, padRect)) {
             validTouches.push(touches[i]);
         }
     }
@@ -84,6 +86,8 @@ function filterTouches(touches) {
 
 function handleTouchstart(touches) {
     let relativeTouch = "";
+    
+    padCtx.clearRect(0, 0, pad.width, pad.height);
 
     actions.clicking = true;
     touches = filterTouches(touches);
@@ -110,14 +114,14 @@ function handleTouchstart(touches) {
 function handleTouchmove(touches) {
     let relativeTouch;
 
-    if (touches.length > 1) {
+    if(touches.length > 1) {
         const centeredTouches = getCenter(touches);
         relativeTouch = getRelativePos(centeredTouches.x, centeredTouches.y, padRect);
     } else {
         relativeTouch = getRelativePos(touches[0].clientX, touches[0].clientY, padRect);
     }
 
-    if (Math.abs(relativeTouch.x - firstPos.x) > (Math.min(padSize.x, padSize.y) * 0.1) || Math.abs(relativeTouch.y - firstPos.y) > (Math.min(padSize.x, padSize.y) * 0.5)) {
+    if(Math.abs(relativeTouch.x - firstPos.x) > (Math.min(padSize.x, padSize.y) * 0.1) || Math.abs(relativeTouch.y - firstPos.y) > (Math.min(padSize.x, padSize.y) * 0.5)) {
         actions.clicking = false;
     }
 
@@ -129,9 +133,9 @@ function handleTouchmove(touches) {
     padCtx.beginPath();
     padCtx.lineTo(relativeTouch.x, relativeTouch.y);
 
-    if (touches.length == 1) {
+    if(touches.length == 1) {
         handleMove(relativeTouch);
-    } else if (touches.length == 2) {
+    } else if(touches.length == 2) {
         handleScroll(relativeTouch);
     }
 }
@@ -202,12 +206,15 @@ pad.addEventListener("touchstart", (ev) => {
 pad.addEventListener("touchmove", (ev) => {
     ev.preventDefault();
     const touches = filterTouches(ev.touches);
+
     if(pointers != touches.length) {
         return handleTouchstart(touches);
     }
-    if (animationFrame) {
+
+    if(animationFrame) {
         cancelAnimationFrame(animationFrame);
     }
+    
     animationFrame = requestAnimationFrame(() => handleTouchmove(touches));
 })
 
