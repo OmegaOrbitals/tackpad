@@ -124,13 +124,15 @@ function handleTouchmove(touches) {
         actions.clicking = false;
     }
 
-    padCtx.lineWidth = 6;
-    padCtx.lineCap = "round";
-    padCtx.strokeStyle = "white";
-    padCtx.lineTo(relativeTouch.x, relativeTouch.y);
-    padCtx.stroke();
-    padCtx.beginPath();
-    padCtx.lineTo(relativeTouch.x, relativeTouch.y);
+    for(let i = 0; i < touches.length; i++) {
+        padCtx.lineWidth = 6;
+        padCtx.lineCap = "round";
+        padCtx.strokeStyle = "white";
+        padCtx.lineTo(touches[i].clientX, touches[i].clientY);
+        padCtx.stroke();
+        padCtx.beginPath();
+        padCtx.lineTo(touches[i].clientX, touches[i].clientY);
+    }
 
     if(touches.length == 1) {
         handleMove(relativeTouch);
