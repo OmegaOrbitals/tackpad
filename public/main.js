@@ -102,7 +102,6 @@ function handleTouchstart(touches) {
     updateFirstPos(relativeTouch);
     updateLastPos(relativeTouch);
     
-    padCtx.beginPath();
     padCtx.moveTo(relativeTouch.x, relativeTouch.y);
     
     pointers = touches.length;
