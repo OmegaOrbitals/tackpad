@@ -7,6 +7,8 @@ const left = document.querySelector("#left");
 const right = document.querySelector("#right");
 const socket = io();
 
+const padCtx = pad.getContext("2d");
+
 let settings = {
     horizontal_scroll_direction: -1,
     vertical_scroll_direction: 1
@@ -28,6 +30,7 @@ let buttonStates = {
 }
 let pointers = 0;
 let padTimer;
+let animationFrame;
 
 function getCenter(touches) {
     let touchesSum = { x: 0, y: 0 };
@@ -80,18 +83,23 @@ function filterTouches(touches) {
 }
 
 function handleTouchstart(touches) {
+    let relativeTouch = "";
+
     actions.clicking = true;
     touches = filterTouches(touches);
+
     if(touches.length > 1) {
         const centeredTouches = getCenter(touches);
-        const relativeTouch = getRelativePos(centeredTouches.x, centeredTouches.y, padRect);
-        updateFirstPos(relativeTouch);
-        updateLastPos(relativeTouch);
+        relativeTouch = getRelativePos(centeredTouches.x, centeredTouches.y, padRect);
     } else {
-        const relativeTouch = getRelativePos(touches[0].clientX, touches[0].clientY, padRect);
-        updateFirstPos(relativeTouch);
-        updateLastPos(relativeTouch);
+        relativeTouch = getRelativePos(touches[0].clientX, touches[0].clientY, padRect);
     }
+
+    updateFirstPos(relativeTouch);
+    updateLastPos(relativeTouch);
+    
+    padCtx.beginPath();
+    padCtx.moveTo(relativeTouch.x, relativeTouch.y);
     
     pointers = touches.length;
     padTimer = setTimeout(() => {
@@ -102,27 +110,37 @@ function handleTouchstart(touches) {
 function handleTouchmove(touches) {
     let relativeTouch;
 
-    if(touches.length > 1) { 
+    if (touches.length > 1) {
         const centeredTouches = getCenter(touches);
         relativeTouch = getRelativePos(centeredTouches.x, centeredTouches.y, padRect);
     } else {
         relativeTouch = getRelativePos(touches[0].clientX, touches[0].clientY, padRect);
     }
 
-    if(Math.abs(relativeTouch.x - firstPos.x) > (Math.min(padSize.x, padSize.y) * 0.1) || Math.abs(relativeTouch.y - firstPos.y) > (Math.min(padSize.x, padSize.y) * 0.5)) {
+    if (Math.abs(relativeTouch.x - firstPos.x) > (Math.min(padSize.x, padSize.y) * 0.1) || Math.abs(relativeTouch.y - firstPos.y) > (Math.min(padSize.x, padSize.y) * 0.5)) {
         actions.clicking = false;
     }
 
-    if(touches.length == 1) {
+    padCtx.lineWidth = 6;
+    padCtx.lineCap = "round";
+    padCtx.strokeStyle = "white";
+    padCtx.lineTo(relativeTouch.x, relativeTouch.y);
+    padCtx.stroke();
+    padCtx.beginPath();
+    padCtx.lineTo(relativeTouch.x, relativeTouch.y);
+
+    if (touches.length == 1) {
         handleMove(relativeTouch);
-    } else if(touches.length == 2) {
+    } else if (touches.length == 2) {
         handleScroll(relativeTouch);
     }
 }
 
 function handleTouchend() {
     clearTimeout(padTimer);
-    
+
+    padCtx.clearRect(0, 0, pad.width, pad.height);
+
     if(actions.clicking != true) {
         return;
     }
@@ -187,7 +205,10 @@ pad.addEventListener("touchmove", (ev) => {
     if(pointers != touches.length) {
         return handleTouchstart(touches);
     }
-    handleTouchmove(touches);
+    if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+    }
+    animationFrame = requestAnimationFrame(() => handleTouchmove(touches));
 })
 
 pad.addEventListener("touchend", (ev) => {

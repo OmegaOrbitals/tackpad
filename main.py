@@ -20,6 +20,7 @@ def handle_root():
 def handle_move(moveValues):
     mouse.move(moveValues["x"], moveValues["y"])
     print("Move", moveValues)
+    time.sleep(0.01)
 
 @socketio.on("click")
 def handle_click(clickValues):
